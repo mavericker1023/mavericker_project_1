@@ -14,13 +14,33 @@ export default async function handler(req, res) {
   }
 
   const { image } = req.body;
-  console.log("Received image size:", image ? image.length : "No image data");
+  console.log("Received image size (base64):", image ? image.length : "No image data");
 
   try {
-    console.log("Sending request to RunPod with image size:", image.length);
+    // base64 데이터를 디코딩하여 이미지 크기 확인 (선택)
+    let optimizedImage = image;
+    if (image) {
+      console.log("Optimizing base64 image...");
+      const base64Data = image.split(",")[1]; // base64 데이터만 추출 (헤더 제거)
+      const buffer = Buffer.from(base64Data, "base64");
+      console.log("Raw image size (bytes):", buffer.length);
+
+      // 이미지 압축/최적화 (sharp 라이브러리 사용, 설치 필요: `npm install sharp`)
+      const sharp = require("sharp");
+      const optimizedBuffer = await sharp(buffer)
+        .resize(1024, 1024, { fit: "inside" }) // 최대 1024x1024로 리사이징
+        .jpeg({ quality: 70 }) // JPEG로 변환, 품질 70%
+        .toBuffer();
+
+      // 최적화된 base64로 변환
+      optimizedImage = `data:image/jpeg;base64,${optimizedBuffer.toString("base64")}`;
+      console.log("Optimized image size (base64):", optimizedImage.length);
+    }
+
+    console.log("Sending request to RunPod with optimized image size:", optimizedImage.length);
     const response = await axios.post(
       "https://api.runpod.ai/v2/bmr96x370lmqv3/run",
-      { input: { image } },
+      { input: { image: optimizedImage } },
       {
         headers: {
           Authorization: "Bearer rpa_C1076HGF7B4EGX7XOFW5P7NGHIHWDR96LSMM8BRR1wnszp",
