@@ -12,7 +12,7 @@ export default function Home() {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
       img.onload = () => {
-        const maxSize = 256; // 최대 크기 256x256로 줄임 (더 작은 크기로 테스트)
+        const maxSize = 256; // 최대 크기 256x256로 줄임
         let width = maxSize;
         let height = maxSize;
         if (img.width > img.height) {
@@ -25,8 +25,8 @@ export default function Home() {
         ctx.drawImage(img, 0, 0, width, height);
         canvas.toBlob(
           (blob) => resolve(blob),
-          "image/jpeg", // JPEG로 변환 (품질 최적화)
-          0.5 // 품질 50%로 설정 (더 낮게 조정 가능)
+          "image/jpeg",
+          0.5 // 품질 50%
         );
       };
       img.src = URL.createObjectURL(file);
@@ -46,16 +46,18 @@ export default function Home() {
 
     setLoading(true);
     try {
-      // 이미지 리사이징
       const resizedBlob = await resizeImage(file);
       const reader = new FileReader();
       reader.onload = async () => {
-        const base64Image = reader.result.split(",")[1]; // base64 데이터만 추출
-        console.log("Resized base64 size:", base64Image.length); // 크기 확인
+        const base64Image = reader.result.split(",")[1] || ""; // 기본값 빈 문자열
+        console.log("Resized base64 size:", base64Image.length);
 
-        // RunPod API 호출
-        const response = await axios.post("/api/runpod", { image: base64Image });
-        setResultImage(`data:image/jpeg;base64,${response.data.output}`); // JPEG로 결과 반환
+        const response = await axios.post("/api/runpod", { image: base64Image }, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        setResultImage(`data:image/jpeg;base64,${response.data.output}`);
       };
       reader.readAsDataURL(resizedBlob);
     } catch (error) {

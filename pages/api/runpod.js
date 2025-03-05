@@ -1,11 +1,11 @@
 import axios from "axios";
-const sharp = require("sharp"); // npm install sharp 필요
 
 // Vercel 타임아웃을 60초로 늘림 (최대값)
 export const config = {
   api: {
     bodyParser: { sizeLimit: "50mb" }, // 이미지 크기 제한 50MB로 늘림
     timeout: 60000, // 60초 타임아웃 (Vercel 최대)
+    methods: ["POST"], // 명시적으로 POST 허용
   },
 };
 
@@ -14,35 +14,17 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { image } = req.body;
+  const { image = "" } = req.body; // 기본값으로 빈 문자열 설정
   console.log("Received image size (base64):", image ? image.length : "No image data");
 
   try {
-    let optimizedImage = image;
-    if (image) {
-      console.log("Optimizing base64 image...");
-      const base64Data = image.split(",")[1]; // base64 데이터만 추출 (헤더 제거)
-      const buffer = Buffer.from(base64Data, "base64");
-      console.log("Raw image size (bytes):", buffer.length);
-
-      // 이미지 압축/최적화 (sharp 사용)
-      const optimizedBuffer = await sharp(buffer)
-        .resize(256, 256, { fit: "inside" }) // 최대 256x256로 리사이징
-        .jpeg({ quality: 50 }) // JPEG로 변환, 품질 50%
-        .toBuffer();
-
-      // 최적화된 base64로 변환
-      optimizedImage = `data:image/jpeg;base64,${optimizedBuffer.toString("base64")}`;
-      console.log("Optimized image size (base64):", optimizedImage.length);
-    }
-
-    console.log("Sending request to RunPod with optimized image size:", optimizedImage.length);
+    console.log("Sending request to RunPod with image size:", image.length);
     const response = await axios.post(
       "https://api.runpod.ai/v2/bmr96x370lmqv3/run",
-      { input: { image: optimizedImage } },
+      { input: { image } },
       {
         headers: {
-          Authorization: "Bearer rpa_C1076HGF7B4EGX7XOFW5P7NGHIHWDR96LSMM8BRR1wnszp",
+          Authorization: "Bearer rpa_C1076HGF7B4EGX7XOFW5P7NGHIHWDR96LSMM8BRR1wnszp", // 하드코딩 (실제 키로 교체)
           "Content-Type": "application/json",
         },
         timeout: 1200000, // 20분 타임아웃 (큰 이미지 처리 시간 충분히 확보)
@@ -61,7 +43,7 @@ export default async function handler(req, res) {
       const status = await axios.get(
         `https://api.runpod.ai/v2/bmr96x370lmqv3/status/${jobId}`,
         {
-          headers: { Authorization: "Bearer rpa_C1076HGF7B4EGX7XOFW5P7NGHIHWDR96LSMM8BRR1wnszp" },
+          headers: { Authorization: "Bearer rpa_C1076HGF7B4EGX7XOFW5P7NGHIHWDR96LSMM8BRR1wnszp" }, // 하드코딩 (실제 키로 교체)
           timeout: 20000, // 상태 확인 타임아웃 20초로 늘림
         }
       );
