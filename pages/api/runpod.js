@@ -3,6 +3,7 @@ import axios from "axios";
 export const config = {
   api: { bodyParser: { sizeLimit: "10mb" } },
 };
+// 테스트 환경
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
