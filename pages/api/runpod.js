@@ -16,7 +16,7 @@ export default async function handler(req, res) {
   try {
     console.log("Sending request to RunPod...");
     const response = await axios.post(
-      "https://api.runpod.ai/v2/kpxhufzhsgdvmy/run",
+      "https://api.runpod.ai/v2/f7yb0x443iv7na/run",
       { input: { image } },
       {
         headers: {
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
 
     while (attempts < maxAttempts) {
       const status = await axios.get(
-        `https://api.runpod.ai/v2/kpxhufzhsgdvmy/status/${jobId}`,
+        `https://api.runpod.ai/v2/f7yb0x443iv7na/status/${jobId}`,
         {
           headers: { Authorization: "Bearer rpa_C1076HGF7B4EGX7XOFW5P7NGHIHWDR96LSMM8BRR1wnszp" },
           timeout: 10000,
